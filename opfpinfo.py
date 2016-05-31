@@ -1,14 +1,17 @@
 import csv
 import sys
+import os
 
 all_opf_files_dir = ""
 pinfo_files_dir = ""
 failed_check_list = ""
 
+no_files = []
+
 personal_dictionary = []
 def init_personalinfo_dictionary():
     for i in range(47):
-        personal_dictionary.append(["no-pi"]*13)
+        personal_dictionary.append(["npi"]*13)
 
 
 def fill_pidictionary_with_nofile():
@@ -34,7 +37,7 @@ def fill_pidictionary_with_nofile():
                 #print "prefix: {}".format(prefix)
                 #print "no file"
                 no_files.append(prefix)
-                personal_dictionary[i+1][j] = "NO-FILE"
+                personal_dictionary[i+1][j] = "nf"
                 nofile_count += 1
 
     print "\n\nnofile_count: {}".format(nofile_count)
@@ -104,11 +107,11 @@ def check_if_file_exists(prefix):
     return False
 
 def list_of_all_files():
-    return os.listdir("data/opf_files") #+ os.listdir("data/single_opf_nofinal") + os.listdir("data/nofinal_but_consensus")
+    return os.listdir(all_opf_files_dir)
 
 
 def list_of_pinfo_files():
-    return os.listdir("data/pinfo_files") #+ os.listdir("data/single_opf_nofinal/personal_info_files") + os.listdir("data/nofinal_but_consensus/personal_info_files")
+    return os.listdir(pinfo_files_dir) #+ os.listdir("data/single_opf_nofinal/personal_info_files") + os.listdir("data/nofinal_but_consensus/personal_info_files")
 
 
 def generate_nopersonalinfo_files():
@@ -118,17 +121,37 @@ def generate_nopersonalinfo_files():
         if ".DS" in file:
             continue
         prefix = file[0:5].split("_")
-        #print "original: {}".format(prefix)
+        print "original: {}".format(prefix)
         prefix = [int(prefix[0]), prefix_to_array(prefix[1])]
         #print "new: {}".format(prefix)
 
-        personal_dictionary[prefix[0]][prefix[1]] = "**PI**"
+        personal_dictionary[prefix[0]][prefix[1]] = "pi"
+
+    failed_check_files = read_failed_check_csv()
+
+    for file in failed_check_files:
+        prefix = file[0:5].split("_")
+        print "original: {}".format(prefix)
+        prefix = [int(prefix[0]), prefix_to_array(prefix[1])]
+        #print "new: {}".format(prefix)
+
+        personal_dictionary[prefix[0]][prefix[1]] += "-c"
+
     with open("opf_personalinfo_table.csv", "wb") as table:
         writer = csv.writer(table)
         writer.writerow(["subject-visit", "06", "07", "08", "09", "10",
                          "11", "12", "13", "14", "15", "16", "17", "18"])
         for index, subject in enumerate(personal_dictionary[1:]):
             writer.writerow([index+1] + subject)
+
+
+def read_failed_check_csv():
+    files = []
+    with open(failed_check_list, "rU") as failed:
+        for line in failed:
+            files.append(line[0:5])
+
+    return files
 
 
 
